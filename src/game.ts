@@ -1,41 +1,24 @@
 import 'phaser';
 
-enum PlantState {
-    Small, Medium, Budding, Flower
-}
-
-const TOOLS_COUNT = 2
-enum PlayerTool {
-    WateringCan, FlySwatter,
-    //NutrientCan
-}
-
-
 export default class GameScene extends Phaser.Scene
 {
     lives: integer;
-    water: integer;
-    nutrients: integer;
     points: integer;
-    currentTool: PlayerTool;
-    sprite: Phaser.GameObjects.Sprite = null;
+    sprite: Phaser.GameObjects.Sprite;
+    private circle: Phaser.GameObjects.Arc & { body: Phaser.Physics.Arcade.Body };
+    debugText: Phaser.GameObjects.Text;
  
     constructor ()
     {
         super('gameScene');
         this.lives = 3;
-        this.water = 100;
-        this.nutrients = 100;
         this.points = 0;
-        this.currentTool = PlayerTool.WateringCan;
     }
 
     preload ()
     {
         this.load.image('bg', 'assets/bg.png');
-        this.load.image('plant-sm', 'assets/small-plant.png');
-        this.load.image('tool'+PlayerTool.WateringCan, 'assets/wateringcan.png');
-        this.load.image('tool'+PlayerTool.FlySwatter, 'assets/flyswatter.png');
+        this.load.image('fan', 'assets/fan.png');
     }
 
     create ()
@@ -45,48 +28,49 @@ export default class GameScene extends Phaser.Scene
         //this.data.set('lives', 3);
         //this.data.set('level', 5);
         //this.data.set('score', 2000);
-
-        this.add.image(400, 300, 'bg');
-        this.add.image(400, 394, 'plant-sm');
-        //this.add.rectangle
-
+        
+        //this.add.image(400, 300, 'bg');
+        this.circle = this.add.circle(400, 300, 10, 0xff0000) as any;
+        this.physics.add.existing(this.circle);
+        this.circle.body.setCollideWorldBounds(true);
+        this.sprite = this.add.sprite(350, game.renderer.height-19, 'fan');
+        
+        this.debugText = this.add.text(0, 0, '', { font: '18px Courier', fill: '#00ff00' });
+        
         this.pointerLock();
+        
     }
 
     update ()
     {
-    }
+        this.debugText.setText('circle x,y: '+this.circle.x+' '+this.circle.y + "\n sprite x,y: " + this.sprite.x +' '+this.sprite.y);
+        
+        if (this.circle.x > this.sprite.x-20 &&
+            this.circle.x < this.sprite.x+20) {
 
-    incrementCurrentTool() 
-    {
-        if (this.currentTool == TOOLS_COUNT-1)
-        {
-            this.currentTool = PlayerTool.WateringCan;
+                if (this.circle.x > this.sprite.x) {
+                    this.circle.body.setAccelerationX(100)
+                }
+
+                if (this.circle.x < this.sprite.x) {
+                    this.circle.body.setAccelerationX(-100)
+                }
+
+            this.circle.setFillStyle(0x00ff00);
+            this.circle.body.setAccelerationY(-300);
         }
-        else 
-        {
-            this.currentTool++;
+        else {
+            this.circle.setFillStyle(0xff0000);
+            this.circle.body.setAccelerationY(300);
         }
-        console.log('returning: ' + 'tool'+this.currentTool )
-        return 'tool'+this.currentTool;
+        
     }
 
     pointerLock() 
     {
         // Pointer lock will only work after an 'engagement gesture', e.g. mousedown, keypress, etc.
         this.input.on('pointerdown', function (pointer) {
-            if (pointer.button === 2) 
-            {
-                this.sprite.setTexture(this.incrementCurrentTool());
-            }
-            console.log(pointer.button);
-    
             this.input.mouse.requestPointerLock();
-            if (this.sprite === null) 
-            {
-                this.sprite = this.add.sprite(400, 300, 'tool'+this.currentTool);
-            }
-    
         }, this);
     
         // When locked, you will have to use the movementX and movementY properties of the pointer
@@ -94,13 +78,11 @@ export default class GameScene extends Phaser.Scene
         this.input.on('pointermove', function (pointer) {
             if (this.input.mouse.locked)
             {
+
+                // todo: migth want to limit this to the game width?
                 this.sprite.x += pointer.movementX;
-                this.sprite.y += pointer.movementY;
-    
-                // Force the sprite to stay on screen
-//                this.sprite.x = Phaser.Math.Wrap(this.sprite.x, 0, game.renderer.width);
-//                this.sprite.y = Phaser.Math.Wrap(this.sprite.y, 0, game.renderer.height);
-    
+
+                // make the fan tilt
                 if (pointer.movementX > 0) { this.sprite.setRotation(0.1); }
                 else if (pointer.movementX < 0) { this.sprite.setRotation(-0.1); }
                 else { this.sprite.setRotation(0); }    
@@ -123,7 +105,13 @@ const config = {
     backgroundColor: '#125555',
     width: 800,
     height: 600,
-    scene: GameScene
-};
+    scene: GameScene,
+    physics: {
+        default: 'arcade',
+        arcade: { 
+//            gravity: { y: 300 },
+            debug: true 
+        }
+    },};
 
 const game = new Phaser.Game(config);
