@@ -18,7 +18,7 @@ export default class GameScene extends Phaser.Scene
     nutrients: integer;
     points: integer;
     currentTool: PlayerTool;
-    sprite;
+    sprite: Phaser.GameObjects.Sprite = null;
  
     constructor ()
     {
@@ -73,8 +73,6 @@ export default class GameScene extends Phaser.Scene
 
     pointerLock() 
     {
-        this.sprite = this.add.sprite(400, 300, 'tool'+this.currentTool);
-
         // Pointer lock will only work after an 'engagement gesture', e.g. mousedown, keypress, etc.
         this.input.on('pointerdown', function (pointer) {
             if (pointer.button === 2) 
@@ -84,6 +82,10 @@ export default class GameScene extends Phaser.Scene
             console.log(pointer.button);
     
             this.input.mouse.requestPointerLock();
+            if (this.sprite === null) 
+            {
+                this.sprite = this.add.sprite(400, 300, 'tool'+this.currentTool);
+            }
     
         }, this);
     
