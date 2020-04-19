@@ -13,6 +13,9 @@ export default class GameScene extends Phaser.Scene
     points: integer;
     // temp, use a sprite later
     fan: any;
+
+    gameRunning: boolean;
+
     private baby: Phaser.GameObjects.Sprite & { body: Phaser.Physics.Arcade.Body };
     debugText: Phaser.GameObjects.Text;
     gameoverText: Phaser.GameObjects.Text;
@@ -22,6 +25,7 @@ export default class GameScene extends Phaser.Scene
         super('gameScene');
         this.lives = 3;
         this.points = 0;
+        this.gameRunning = false;
     }
 
     preload ()
@@ -66,23 +70,24 @@ export default class GameScene extends Phaser.Scene
         this.debugText.setText('\n\n\nlives: '+ this.lives+
             "\npoints: "+this.points);
 
-        // fan control
-        if (this.baby.x > this.fan.x-FAN_WIDTH/2 &&
-            this.baby.x < this.fan.x+FAN_WIDTH/2) {
+        // fan control / baby accel
+        if (this.gameRunning) {
+            if (this.baby.x > this.fan.x-FAN_WIDTH/2 &&
+                this.baby.x < this.fan.x+FAN_WIDTH/2) {
 
-                if (this.baby.x > this.fan.x) {
-                    this.baby.body.setAccelerationX(100)
-                }
+                    if (this.baby.x > this.fan.x) {
+                        this.baby.body.setAccelerationX(100)
+                    }
 
-                if (this.baby.x < this.fan.x) {
-                    this.baby.body.setAccelerationX(-100)
-                }
+                    if (this.baby.x < this.fan.x) {
+                        this.baby.body.setAccelerationX(-100)
+                    }
 
-            this.baby.body.setAccelerationY(-300);
-        }
-        else {
-            this.baby.body.setAccelerationY(300);
-
+                this.baby.body.setAccelerationY(-300);
+            }
+            else {
+                this.baby.body.setAccelerationY(300);
+            }
         }
 
         if (this.baby.body.velocity.x > 0) 
@@ -115,6 +120,10 @@ export default class GameScene extends Phaser.Scene
     {
         // Pointer lock will only work after an 'engagement gesture', e.g. mousedown, keypress, etc.
         this.input.on('pointerdown', function (pointer) {
+            if (this.gameRunning === false)
+            {
+                this.gameRunning = true;
+            }
             this.input.mouse.requestPointerLock();
         }, this);
     
@@ -155,9 +164,10 @@ export default class GameScene extends Phaser.Scene
 
     resetBall()
     {
+        this.gameRunning = false;
         // reset ball
         this.baby.body.setAccelerationX(0);
-        this.baby.body.setAccelerationY(300);
+        this.baby.body.setAccelerationY(0);
         this.baby.body.setVelocityX(0);
         this.baby.body.setVelocityY(0);
         this.baby.setPosition(CIRCLE_INIT_X, CIRCLE_INIT_Y);
