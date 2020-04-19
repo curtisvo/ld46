@@ -13,7 +13,7 @@ export default class GameScene extends Phaser.Scene
     points: integer;
     // temp, use a sprite later
     fan: any;
-    private circle: Phaser.GameObjects.Arc & { body: Phaser.Physics.Arcade.Body };
+    private baby: Phaser.GameObjects.Sprite & { body: Phaser.Physics.Arcade.Body };
     debugText: Phaser.GameObjects.Text;
     gameoverText: Phaser.GameObjects.Text;
  
@@ -26,8 +26,9 @@ export default class GameScene extends Phaser.Scene
 
     preload ()
     {
-        //this.load.image('bg', 'assets/bg.png');
-        //this.load.image('fan', 'assets/fan.png');
+        this.load.image('bg', 'assets/bg.png');
+        this.load.image('spikes', 'assets/spikes.png');
+        this.load.image('baby', 'assets/baby2.png');
     }
 
     create ()
@@ -37,11 +38,15 @@ export default class GameScene extends Phaser.Scene
         //this.data.set('lives', 3);
         //this.data.set('level', 5);
         //this.data.set('score', 2000);
+
+        this.add.image(400, 300, 'bg');
+
+        this.add.image(400, 10, 'spikes').setRotation(3.14);
+        this.add.image(400, game.renderer.height-10, 'spikes');
         
-        //this.add.image(400, 300, 'bg');
-        this.circle = this.add.circle(CIRCLE_INIT_X, CIRCLE_INIT_Y, 10, 0xff0000) as any;
-        this.physics.add.existing(this.circle);
-        this.circle.body.setCollideWorldBounds(true);//.setBounce(1, 1); dont think I want bounce
+        this.baby = this.add.sprite(CIRCLE_INIT_X, CIRCLE_INIT_Y, 'baby') as any;
+        this.physics.add.existing(this.baby);
+        this.baby.body.setCollideWorldBounds(true);//.setBounce(1, 1); dont think I want bounce
 
         this.fan = this.add.rectangle(FAN_INIT_X, game.renderer.height-20, FAN_WIDTH, 20, 0x0000ff);
         //.sprite(350, game.renderer.height-19, 'fan');
@@ -49,17 +54,15 @@ export default class GameScene extends Phaser.Scene
         this.debugText = this.add.text(0, 0, '', { font: '18px Courier', fill: '#00ff00' });
         
         this.pointerLock();
-        
     }
 
     update ()
     {
-        this.debugText.setText('circle x,y: '+this.circle.x+' '+this.circle.y + "\n fan x,y: " + this.fan.x +' '+this.fan.y + 
-            "\nlives: "+ this.lives+
+        this.debugText.setText('\n\n\nlives: '+ this.lives+
             "\npoints: "+this.points);
 
         // death
-        if (this.circle.y < 15 || this.circle.y > game.renderer.height-15) 
+        if (this.baby.y < 15 || this.baby.y > game.renderer.height-15) 
         {
             this.lives--;
             if (this.lives == 0)
@@ -72,23 +75,34 @@ export default class GameScene extends Phaser.Scene
             }
         }
         
-        if (this.circle.x > this.fan.x-FAN_WIDTH/2 &&
-            this.circle.x < this.fan.x+FAN_WIDTH/2) {
+        // fan control
+        if (this.baby.x > this.fan.x-FAN_WIDTH/2 &&
+            this.baby.x < this.fan.x+FAN_WIDTH/2) {
 
-                if (this.circle.x > this.fan.x) {
-                    this.circle.body.setAccelerationX(100)
+                if (this.baby.x > this.fan.x) {
+                    this.baby.body.setAccelerationX(100)
                 }
 
-                if (this.circle.x < this.fan.x) {
-                    this.circle.body.setAccelerationX(-100)
+                if (this.baby.x < this.fan.x) {
+                    this.baby.body.setAccelerationX(-100)
                 }
 
-            this.circle.setFillStyle(0x00ff00);
-            this.circle.body.setAccelerationY(-300);
+            this.baby.body.setAccelerationY(-300);
         }
         else {
-            this.circle.setFillStyle(0xff0000);
-            this.circle.body.setAccelerationY(300);
+            this.baby.body.setAccelerationY(300);
+
+        }
+
+        if (this.baby.body.velocity.x > 0) 
+        {
+            this.baby.setFlipX(false);
+            this.baby.setRotation(0.3);
+        }
+        else 
+        {
+            this.baby.setFlipX(true);
+            this.baby.setRotation(-0.3);
         }
         
     }
@@ -138,11 +152,11 @@ export default class GameScene extends Phaser.Scene
     resetBall()
     {
         // reset ball
-        this.circle.body.setAccelerationX(0);
-        this.circle.body.setAccelerationY(300);
-        this.circle.body.setVelocityX(0);
-        this.circle.body.setVelocityY(0);
-        this.circle.setPosition(CIRCLE_INIT_X, CIRCLE_INIT_Y);
+        this.baby.body.setAccelerationX(0);
+        this.baby.body.setAccelerationY(300);
+        this.baby.body.setVelocityX(0);
+        this.baby.body.setVelocityY(0);
+        this.baby.setPosition(CIRCLE_INIT_X, CIRCLE_INIT_Y);
     }
 }
 
