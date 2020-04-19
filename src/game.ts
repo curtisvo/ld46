@@ -5,6 +5,12 @@ const CIRCLE_INIT_X: integer = 400;
 const CIRCLE_INIT_Y: integer = 200;
 const FAN_INIT_X: integer = 300;
 
+//todo:  30 or 60 ?
+const MAX_TIME: integer = 10;
+const MAX_LEVEL: integer = 3;
+const LEVEL_ACCEL_MOD: integer = 50;
+const BABY_ACCELERATION: integer = 20;
+
 // temp, find a nice width
 const FAN_WIDTH: integer = 150;
 
@@ -14,8 +20,12 @@ enum GameState {
 
 export default class GameScene extends Phaser.Scene
 {
+    //currentLevel: integer;
     lives: integer;
-    points: integer;
+    startTime: Date;
+    
+    interval: any;
+
     // temp, use a sprite later
     fan: any;
 
@@ -28,8 +38,8 @@ export default class GameScene extends Phaser.Scene
     constructor ()
     {
         super('gameScene');
+        //this.currentLevel = 1;
         this.lives = 3;
-        this.points = 0;
         this.gameState = GameState.STOPPED;
     }
 
@@ -55,7 +65,7 @@ export default class GameScene extends Phaser.Scene
         this.physics.add.existing(this.fan);
         //.sprite(350, game.renderer.height-19, 'fan');
         
-        this.debugText = this.add.text(0, 0, '', { font: '18px Courier', fill: '#00ff00' });
+        this.debugText = this.add.text(0, 50, '', { font: '18px Courier', fill: '#00ff00' });
         
         this.physics.add.overlap(this.baby, topspikes, this.die, null, this);
         this.physics.add.overlap(this.baby, bottomspikes, this.die, null, this);        
@@ -66,11 +76,22 @@ export default class GameScene extends Phaser.Scene
 
     update ()
     {
-        this.debugText.setText('\n\n\nlives: '+ this.lives+
-            "\npoints: "+this.points);
-
         // fan control / baby accel
         if (this.gameState === GameState.RUNNING) {
+            let now:Date = new Date();
+            let countdown:number = MAX_TIME - (now.valueOf() - this.startTime.valueOf())/1000;
+            if (countdown < 0) 
+            {
+                // careful, only works because we stop the game
+                this.levelUp();
+                return;
+            }
+
+            this.debugText.setText(
+//                'level: '+this.currentLevel + 
+                '\nlives: '+ this.lives+
+                "\ncountdown: "+countdown);
+
             if (this.baby.x > this.fan.x-FAN_WIDTH/2 &&
                 this.baby.x < this.fan.x+FAN_WIDTH/2) {
 
@@ -82,10 +103,12 @@ export default class GameScene extends Phaser.Scene
                         this.baby.body.setAccelerationX(-100)
                     }
 
-                this.baby.body.setAccelerationY(-300);
-            }
+                    //this.baby.body.setAccelerationY((BABY_ACCELERATION+(this.currentLevel*LEVEL_ACCEL_MOD))*-1);
+                    this.baby.body.setAccelerationY((BABY_ACCELERATION*-1));
+                }
             else {
-                this.baby.body.setAccelerationY(300);
+                //this.baby.body.setAccelerationY(BABY_ACCELERATION+(this.currentLevel*LEVEL_ACCEL_MOD));
+                this.baby.body.setAccelerationY(BABY_ACCELERATION);
             }
         }
 
@@ -121,6 +144,7 @@ export default class GameScene extends Phaser.Scene
         this.input.on('pointerdown', function (pointer) {
             if (this.gameState != GameState.RUNNING)
             {
+                this.startTime = new Date();
                 this.gameState = GameState.RUNNING;
             }
             this.input.mouse.requestPointerLock();
@@ -170,6 +194,22 @@ export default class GameScene extends Phaser.Scene
         this.baby.body.setVelocityX(0);
         this.baby.body.setVelocityY(0);
         this.baby.setPosition(CIRCLE_INIT_X, CIRCLE_INIT_Y);
+    }
+
+    levelUp() 
+    {
+        /*
+        this.currentLevel++;
+        if (this.currentLevel > MAX_LEVEL)
+        {
+            //win scene!
+        }
+        else 
+        {
+            this.resetBall();
+        }
+        */
+       this.resetBall();
     }
 }
 
