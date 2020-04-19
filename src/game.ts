@@ -1,4 +1,5 @@
 import 'phaser';
+import { Game } from 'phaser';
 
 const CIRCLE_INIT_X: integer = 400;
 const CIRCLE_INIT_Y: integer = 200;
@@ -7,6 +8,10 @@ const FAN_INIT_X: integer = 300;
 // temp, find a nice width
 const FAN_WIDTH: integer = 150;
 
+enum GameState {
+    STOPPED, RUNNING, WIN, LOSE
+}
+
 export default class GameScene extends Phaser.Scene
 {
     lives: integer;
@@ -14,7 +19,7 @@ export default class GameScene extends Phaser.Scene
     // temp, use a sprite later
     fan: any;
 
-    gameRunning: boolean;
+    gameState: GameState;
 
     private baby: Phaser.GameObjects.Sprite & { body: Phaser.Physics.Arcade.Body };
     debugText: Phaser.GameObjects.Text;
@@ -25,7 +30,7 @@ export default class GameScene extends Phaser.Scene
         super('gameScene');
         this.lives = 3;
         this.points = 0;
-        this.gameRunning = false;
+        this.gameState = GameState.STOPPED;
     }
 
     preload ()
@@ -37,12 +42,6 @@ export default class GameScene extends Phaser.Scene
 
     create ()
     {
-        // why does phaser do it like this?
-        //  Using the Scene Data Plugin we can store data on a Scene level
-        //this.data.set('lives', 3);
-        //this.data.set('level', 5);
-        //this.data.set('score', 2000);
-
         this.add.image(400, 300, 'bg');
 
         let topspikes = this.physics.add.image(400, 10, 'spikes').setRotation(3.14).setImmovable(true);
@@ -71,7 +70,7 @@ export default class GameScene extends Phaser.Scene
             "\npoints: "+this.points);
 
         // fan control / baby accel
-        if (this.gameRunning) {
+        if (this.gameState === GameState.RUNNING) {
             if (this.baby.x > this.fan.x-FAN_WIDTH/2 &&
                 this.baby.x < this.fan.x+FAN_WIDTH/2) {
 
@@ -120,9 +119,9 @@ export default class GameScene extends Phaser.Scene
     {
         // Pointer lock will only work after an 'engagement gesture', e.g. mousedown, keypress, etc.
         this.input.on('pointerdown', function (pointer) {
-            if (this.gameRunning === false)
+            if (this.gameState != GameState.RUNNING)
             {
-                this.gameRunning = true;
+                this.gameState = GameState.RUNNING;
             }
             this.input.mouse.requestPointerLock();
         }, this);
@@ -164,7 +163,7 @@ export default class GameScene extends Phaser.Scene
 
     resetBall()
     {
-        this.gameRunning = false;
+        this.gameState = GameState.STOPPED;
         // reset ball
         this.baby.body.setAccelerationX(0);
         this.baby.body.setAccelerationY(0);
