@@ -1,6 +1,7 @@
 import 'phaser';
 import { Game } from 'phaser';
 import WinScene from './winScene';
+import IntroScene from './introScene';
 
 const CIRCLE_INIT_X: integer = 400;
 const CIRCLE_INIT_Y: integer = 200;
@@ -156,7 +157,6 @@ export default class GameScene extends Phaser.Scene
         this.input.on('pointermove', function (pointer) {
             if (this.input.mouse.locked)
             {
-
                 // todo: migth want to limit this to the game width?
                 this.fan.x += pointer.movementX;
 
@@ -203,7 +203,6 @@ export default class GameScene extends Phaser.Scene
         if (this.currentLevel > MAX_LEVEL)
         {
             this.scene.start('winScene');
-            //win scene!
         }
         else 
         {
@@ -220,6 +219,7 @@ const config = {
     height: 600,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     scene: [GameScene, WinScene],
+//    scene: [IntroScene, GameScene, WinScene],
     physics: {
         default: 'arcade',
         arcade: { 
