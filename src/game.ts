@@ -1,5 +1,6 @@
 import 'phaser';
 import { Game } from 'phaser';
+import WinScene from './winScene';
 
 const CIRCLE_INIT_X: integer = 400;
 const CIRCLE_INIT_Y: integer = 200;
@@ -20,7 +21,7 @@ enum GameState {
 
 export default class GameScene extends Phaser.Scene
 {
-    //currentLevel: integer;
+    currentLevel: integer;
     lives: integer;
     startTime: Date;
     
@@ -38,7 +39,7 @@ export default class GameScene extends Phaser.Scene
     constructor ()
     {
         super('gameScene');
-        //this.currentLevel = 1;
+        this.currentLevel = 1;
         this.lives = 3;
         this.gameState = GameState.STOPPED;
     }
@@ -59,11 +60,10 @@ export default class GameScene extends Phaser.Scene
         
         this.baby = this.add.sprite(CIRCLE_INIT_X, CIRCLE_INIT_Y, 'baby') as any;
         this.physics.add.existing(this.baby);
-        this.baby.body.setCollideWorldBounds(true);//.setBounce(1, 1); dont think I want bounce
+        this.baby.body.setCollideWorldBounds(true);
 
         this.fan = this.add.rectangle(FAN_INIT_X, game.renderer.height-20, FAN_WIDTH, 20, 0x0000ff);
         this.physics.add.existing(this.fan);
-        //.sprite(350, game.renderer.height-19, 'fan');
         
         this.debugText = this.add.text(0, 50, '', { font: '18px Courier', fill: '#00ff00' });
         
@@ -88,7 +88,7 @@ export default class GameScene extends Phaser.Scene
             }
 
             this.debugText.setText(
-//                'level: '+this.currentLevel + 
+                'level: '+this.currentLevel + 
                 '\nlives: '+ this.lives+
                 "\ncountdown: "+countdown);
 
@@ -112,6 +112,7 @@ export default class GameScene extends Phaser.Scene
             }
         }
 
+        // change baby direction
         if (this.baby.body.velocity.x > 0) 
         {
             this.baby.setFlipX(false);
@@ -198,18 +199,17 @@ export default class GameScene extends Phaser.Scene
 
     levelUp() 
     {
-        /*
         this.currentLevel++;
         if (this.currentLevel > MAX_LEVEL)
         {
+            this.scene.start('winScene');
             //win scene!
         }
         else 
         {
-            this.resetBall();
+            //this.resetBall();
         }
-        */
-       this.resetBall();
+        this.resetBall();
     }
 }
 
@@ -219,7 +219,7 @@ const config = {
     width: 800,
     height: 600,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    scene: GameScene,
+    scene: [GameScene, WinScene],
     physics: {
         default: 'arcade',
         arcade: { 
