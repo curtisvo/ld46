@@ -28,7 +28,7 @@ export default class GameScene extends Phaser.Scene
     {
         this.load.image('bg', 'assets/bg.png');
         this.load.image('spikes', 'assets/spikes.png');
-        this.load.image('baby', 'assets/baby2.png');
+        this.load.image('baby', 'assets/baby-whiteparachute.png');
     }
 
     create ()
@@ -41,18 +41,23 @@ export default class GameScene extends Phaser.Scene
 
         this.add.image(400, 300, 'bg');
 
-        this.add.image(400, 10, 'spikes').setRotation(3.14);
-        this.add.image(400, game.renderer.height-10, 'spikes');
+        let topspikes = this.physics.add.image(400, 10, 'spikes').setRotation(3.14).setImmovable(true);
+        let bottomspikes = this.physics.add.image(400, game.renderer.height-10, 'spikes').setImmovable(true);
         
         this.baby = this.add.sprite(CIRCLE_INIT_X, CIRCLE_INIT_Y, 'baby') as any;
         this.physics.add.existing(this.baby);
         this.baby.body.setCollideWorldBounds(true);//.setBounce(1, 1); dont think I want bounce
 
         this.fan = this.add.rectangle(FAN_INIT_X, game.renderer.height-20, FAN_WIDTH, 20, 0x0000ff);
+        this.physics.add.existing(this.fan);
         //.sprite(350, game.renderer.height-19, 'fan');
         
         this.debugText = this.add.text(0, 0, '', { font: '18px Courier', fill: '#00ff00' });
         
+        this.physics.add.overlap(this.baby, topspikes, this.die, null, this);
+        this.physics.add.overlap(this.baby, bottomspikes, this.die, null, this);        
+        this.physics.add.overlap(this.baby, this.fan, this.die, null, this);
+
         this.pointerLock();
     }
 
@@ -61,20 +66,6 @@ export default class GameScene extends Phaser.Scene
         this.debugText.setText('\n\n\nlives: '+ this.lives+
             "\npoints: "+this.points);
 
-        // death
-        if (this.baby.y < 15 || this.baby.y > game.renderer.height-15) 
-        {
-            this.lives--;
-            if (this.lives == 0)
-            {
-                this.gameover();
-            }
-            else 
-            {
-                this.resetBall();
-            }
-        }
-        
         // fan control
         if (this.baby.x > this.fan.x-FAN_WIDTH/2 &&
             this.baby.x < this.fan.x+FAN_WIDTH/2) {
@@ -105,6 +96,19 @@ export default class GameScene extends Phaser.Scene
             this.baby.setRotation(-0.3);
         }
         
+    }
+
+    die () 
+    {
+        this.lives--;
+        if (this.lives == 0)
+        {
+            this.gameover();
+        }
+        else 
+        {
+            this.resetBall();
+        }
     }
 
     pointerLock() 
@@ -170,7 +174,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: { 
-            debug: true 
+            //debug: true 
         }
     },};
 
