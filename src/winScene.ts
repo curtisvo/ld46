@@ -15,5 +15,6 @@ export default class WinScene extends Phaser.Scene
     create ()
     {
         this.add.image(400, 300, 'win');
+        this.input.mouse.releasePointerLock();
     }
 }

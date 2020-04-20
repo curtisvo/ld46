@@ -9,9 +9,9 @@ const FAN_INIT_X: integer = 300;
 
 //todo:  30 or 60 ?
 const MAX_TIME: integer = 10;
-const MAX_LEVEL: integer = 3;
+const MAX_LEVEL: integer = 5;
 const LEVEL_ACCEL_MOD: integer = 50;
-const BABY_ACCELERATION: integer = 20;
+const BABY_ACCELERATION: integer = 100;
 
 // temp, find a nice width
 const FAN_WIDTH: integer = 150;
@@ -36,6 +36,7 @@ export default class GameScene extends Phaser.Scene
     private baby: Phaser.GameObjects.Sprite & { body: Phaser.Physics.Arcade.Body };
     debugText: Phaser.GameObjects.Text;
     gameoverText: Phaser.GameObjects.Text;
+    levelText: Phaser.GameObjects.Text;
  
     constructor ()
     {
@@ -67,6 +68,7 @@ export default class GameScene extends Phaser.Scene
         this.physics.add.existing(this.fan);
         
         this.debugText = this.add.text(0, 50, '', { font: '18px Courier', fill: '#00ff00' });
+        this.levelText = this.add.text(350, 350, '', { font: '36px Arial Black', fill: '#ff0000' });
         
         this.physics.add.overlap(this.baby, topspikes, this.die, null, this);
         this.physics.add.overlap(this.baby, bottomspikes, this.die, null, this);        
@@ -91,7 +93,7 @@ export default class GameScene extends Phaser.Scene
             this.debugText.setText(
                 'level: '+this.currentLevel + 
                 '\nlives: '+ this.lives+
-                "\ncountdown: "+countdown);
+                "\ncountdown: "+countdown.toPrecision(2));
 
             if (this.baby.x > this.fan.x-FAN_WIDTH/2 &&
                 this.baby.x < this.fan.x+FAN_WIDTH/2) {
@@ -104,12 +106,12 @@ export default class GameScene extends Phaser.Scene
                         this.baby.body.setAccelerationX(-100)
                     }
 
-                    //this.baby.body.setAccelerationY((BABY_ACCELERATION+(this.currentLevel*LEVEL_ACCEL_MOD))*-1);
-                    this.baby.body.setAccelerationY((BABY_ACCELERATION*-1));
+                    this.baby.body.setAccelerationY((BABY_ACCELERATION+(this.currentLevel*LEVEL_ACCEL_MOD))*-1);
+                    //this.baby.body.setAccelerationY((BABY_ACCELERATION*-1));
                 }
             else {
-                //this.baby.body.setAccelerationY(BABY_ACCELERATION+(this.currentLevel*LEVEL_ACCEL_MOD));
-                this.baby.body.setAccelerationY(BABY_ACCELERATION);
+                this.baby.body.setAccelerationY(BABY_ACCELERATION+(this.currentLevel*LEVEL_ACCEL_MOD));
+                //this.baby.body.setAccelerationY(BABY_ACCELERATION);
             }
         }
 
@@ -147,6 +149,7 @@ export default class GameScene extends Phaser.Scene
             if (this.gameState != GameState.RUNNING)
             {
                 this.startTime = new Date();
+                this.levelText.setText('');
                 this.gameState = GameState.RUNNING;
             }
             this.input.mouse.requestPointerLock();
@@ -200,6 +203,7 @@ export default class GameScene extends Phaser.Scene
     levelUp() 
     {
         this.currentLevel++;
+        this.levelText.setText('Level '+this.currentLevel+'!');
         if (this.currentLevel > MAX_LEVEL)
         {
             this.scene.start('winScene');
