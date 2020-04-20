@@ -2,6 +2,7 @@ import 'phaser';
 import { Game } from 'phaser';
 import WinScene from './winScene';
 import IntroScene from './introScene';
+import GameoverScene from './gameoverScene';
 
 const CIRCLE_INIT_X: integer = 400;
 const CIRCLE_INIT_Y: integer = 200;
@@ -41,9 +42,6 @@ export default class GameScene extends Phaser.Scene
     constructor ()
     {
         super('gameScene');
-        this.currentLevel = 1;
-        this.lives = 3;
-        this.gameState = GameState.STOPPED;
     }
 
     preload ()
@@ -55,6 +53,10 @@ export default class GameScene extends Phaser.Scene
 
     create ()
     {
+        this.currentLevel = 1;
+        this.lives = 3;
+        this.gameState = GameState.STOPPED;
+
         this.add.image(400, 300, 'bg');
 
         let topspikes = this.physics.add.image(400, 10, 'spikes').setRotation(3.14).setImmovable(true);
@@ -182,11 +184,7 @@ export default class GameScene extends Phaser.Scene
 
     gameover () 
     {
-        // just reset for now
-        this.resetBall();
-        this.fan.setX(FAN_INIT_X);
-        this.fan.setRotation(0);
-        this.lives = 3;
+        this.scene.start('gameoverScene');
     }
 
     resetBall()
@@ -222,8 +220,7 @@ const config = {
     width: 800,
     height: 600,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    scene: [GameScene, WinScene],
-//    scene: [IntroScene, GameScene, WinScene],
+    scene: [IntroScene, GameScene, WinScene, GameoverScene],
     physics: {
         default: 'arcade',
         arcade: { 
